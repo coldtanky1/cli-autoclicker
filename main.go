@@ -23,7 +23,6 @@ func main() {
 	pterm.DefaultBigText.WithLetters(letters).Render()
 
 	pterm.DefaultBasicText.Printfln("Welcome to %s.", pterm.Blue("CLI Autoclicker"))
-	pterm.DefaultBasicText.Println("To toggle the autoclicker on/off use 'Ctrl + Y'.")
 
 	result, _ := pterm.DefaultInteractiveTextInput.Show("Enter desired CPS")
 	cps, err := strconv.Atoi(result)
@@ -31,6 +30,7 @@ func main() {
 		logger.Fatal("Could not convert string to int. Exiting.")
 		os.Exit(1)
 	}
+	pterm.DefaultBasicText.Printfln("Got it! %d is now your desired CPS.", cps)
 
 	clicker := ClickerState{
 		CPS:        cps,
@@ -49,10 +49,37 @@ func (c *ClickerState) ToggleClicker() {
 
 func (c *ClickerState) StartListener() {
 	logger := pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
-	logger.Info("Shortcut listener started!")
+	logger.Info("Global listeners started!")
+	logger.Info("Press Ctrl+Y to toggle clicker")
+	logger.Info("Press Ctrl+Shift+V to change CPS")
 
 	hook.Register(hook.KeyDown, []string{"ctrl", "y"}, func(e hook.Event) {
 		c.ToggleClicker()
+	})
+
+	hook.Register(hook.KeyDown, []string{"ctrl", "shift", "v"}, func(e hook.Event) {
+		if c.isClicking {
+			c.isClicking = false
+
+			result, _ := pterm.DefaultInteractiveTextInput.Show("Enter desired CPS")
+			cps, err := strconv.Atoi(result)
+			if err != nil {
+				logger.Fatal("Could not convert string to int. Exiting.")
+				os.Exit(1)
+			}
+			logger.Info("Got it! " + strconv.Itoa(cps) + " is now your new desired CPS.")
+			c.ChangeCPS(cps)
+		} else {
+
+			result, _ := pterm.DefaultInteractiveTextInput.Show("Enter desired CPS")
+			cps, err := strconv.Atoi(result)
+			if err != nil {
+				logger.Fatal("Could not convert string to int. Exiting.")
+				os.Exit(1)
+			}
+			logger.Info("Got it! " + strconv.Itoa(cps) + " is now your new desired CPS.")
+			c.ChangeCPS(cps)
+		}
 	})
 
 	s := hook.Start()
@@ -73,6 +100,10 @@ func (c *ClickerState) StartClicker() {
 	}
 }
 
+func (c *ClickerState) ChangeCPS(newCPS int) {
+	c.CPS = newCPS
+}
+
 func CPS2Ms(CPS int) int {
-	return 1000 / (2 * CPS)
+	return 1000 / CPS
 }
