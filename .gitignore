@@ -12,6 +12,9 @@
 *.so
 *.dylib
 
+# the binary i generated lol
+cli-clicker
+
 # Test binary, built with `go test -c`
 *.test
 
