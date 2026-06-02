@@ -1,0 +1,12 @@
+[Unit]
+Description=ydotool automation daemon
+Documentation=man:ydotoold(8)
+
+[Service]
+Type=simple
+# This only works if you installed ydotool through your package manager
+ExecStart=/usr/bin/ydotoold --socket-path=/run/ydotoold.socket
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
