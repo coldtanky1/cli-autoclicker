@@ -42,7 +42,7 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
+          CGO_ENABLED: 1
 
         run: |
           go build -v -ldflags="-w -s" -o ${{ steps.vars.outputs.filename }} .
