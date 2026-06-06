@@ -12,6 +12,8 @@ import (
 	hook "github.com/robotn/gohook"
 )
 
+var Debug = false
+
 type ClickerState struct {
 	CPS        int
 	isClicking bool
@@ -54,13 +56,13 @@ func (c *ClickerState) StartListener() {
 	logger := pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 	logger.Info("Global listeners started!")
 	logger.Info("Press Ctrl+Y to toggle clicker")
-	logger.Info("Press Ctrl+Shift+V to change CPS")
+	logger.Info("Press Ctrl+Shift+; to change CPS")
 
 	hook.Register(hook.KeyDown, []string{"ctrl", "y"}, func(e hook.Event) {
 		c.ToggleClicker()
 	})
 
-	hook.Register(hook.KeyDown, []string{"ctrl", "shift", "v"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"ctrl", "shift", ";"}, func(e hook.Event) {
 		if c.isClicking {
 			c.isClicking = false
 
@@ -94,13 +96,21 @@ func (c *ClickerState) StartListener() {
 func (c *ClickerState) StartClicker() {
 	for {
 		if c.isClicking {
+			DebugPrintf("c.MStoSleep = %d", c.MStoSleep)
+			DebugPrintf("c.CPS = %d", c.CPS)
 			robotgo.Click()
-			log.Printf("c.MStoSleep = %d", c.MStoSleep)
-			log.Printf("c.CPS = %d", c.CPS)
 			time.Sleep(c.MStoSleep * time.Millisecond)
 		} else {
 			time.Sleep(50 * time.Millisecond)
 		}
+	}
+}
+
+func DebugPrintf(format string, v ...any) {
+	if Debug {
+		log.Printf(format, v)
+	} else {
+		return
 	}
 }
 
