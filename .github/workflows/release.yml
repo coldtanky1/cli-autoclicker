@@ -1,0 +1,59 @@
+name: Build and release cli-autoclicker
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux]
+        goarch: [amd64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+          cache: true
+
+      - name: Environment variables
+        id: vars
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
+
+          BINARY_NAME="cli-autoclicker"
+
+          echo "filename=${BINARY_NAME}-${TAG_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}" >> $GITHUB_OUTPUT
+
+      - name: Compile go
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+
+        run: |
+          go build -v -ldflags="-w -s" -o ${{ steps.vars.outputs.filename }} .
+
+      - name: Upload binary
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{steps.vars.outputs.filename}}
+          tag_name: ${{steps.vars.outputs.tag}}
+          name: Release ${{steps.vars.outputs.tag}}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
