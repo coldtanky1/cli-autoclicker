@@ -20,11 +20,7 @@ cd cli-autoclicker
 go mod download
 go build -o cli-clicker
 ```
-or
-```sh
-go install github.com/coldtanky1/cli-autoclicker@latest
-```
-But do mind that using `go install` will install the binary to `$GOPATH/bin`. Make sure to add `$GOPATH/bin` to your `$PATH`
 
 ## Changelog
 v2.1.1 - Removed ydotool as a dependency. Fixed a bug where changing CPS did not in fact change CPS.
+v2.1.2 - Added a debug option
