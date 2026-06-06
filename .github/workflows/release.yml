@@ -17,6 +17,7 @@ jobs:
       matrix:
         goos: [linux]
         goarch: [amd64]
+        backend: [x11, wayland]
 
     steps:
       - name: Checkout code
@@ -28,6 +29,11 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
+      - name: Install linux GUI deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxtst-dev libpng-dev libxcb1-dev libxkbcommon-dev libwayland-dev
+
       - name: Environment variables
         id: vars
         run: |
@@ -36,7 +42,7 @@ jobs:
 
           BINARY_NAME="cli-autoclicker"
 
-          echo "filename=${BINARY_NAME}-${TAG_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}" >> $GITHUB_OUTPUT
+          echo "filename=${BINARY_NAME}-${TAG_NAME}-${{ matrix.goos }}-${{ matrix.goarch }}-${{ matrix.backend }}" >> $GITHUB_OUTPUT
 
       - name: Compile go
         env:
@@ -45,7 +51,12 @@ jobs:
           CGO_ENABLED: 1
 
         run: |
-          go build -v -ldflags="-w -s" -o ${{ steps.vars.outputs.filename }} .
+          # If the matrix is on 'wayland', pass the wayland build tag to Go
+          if [ "${{ matrix.backend }}" = "wayland" ]; then
+            go build -v -tags wayland -ldflags="-w -s" -o ${{ steps.vars.outputs.filename }} .
+          else
+            go build -v -ldflags="-w -s" -o ${{ steps.vars.outputs.filename }} .
+          fi
 
       - name: Upload binary
         uses: softprops/action-gh-release@v2
